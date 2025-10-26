@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Tenants (Müşteriler/Hesaplar)
+model Tenant {
+  id          String        @id @default(cuid())
+  name        String        @unique
+  createdAt   DateTime      @default(now())
+  featureFlags FeatureFlag[] // Bir tenant'ın çok sayıda flag'i olabilir
+}
+
+// 2. Features (Yönetilecek özelliklerin tanımı)
+model Feature {
+  id           String        @id @default(cuid())
+  name         String        @unique // Örn: "new-dashboard", "beta-checkout"
+  description  String?
+  createdAt    DateTime      @default(now())
+  featureFlags FeatureFlag[] // Bir özellik birçok flag'de kullanılabilir
+}
+
+// 3. Feature_Flags (Ana tablo)
+model FeatureFlag {
+  id        String   @id @default(cuid())
+  env       String   // "dev", "staging", "prod"
+  enabled   Boolean  @default(false) // Flag'in ana şalteri
+  updatedAt DateTime @updatedAt
+
+  // İlişkiler
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenantId  String
+  feature   Feature  @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  featureId String
+
+  // İstenen Gelişmiş Değerlendirme Stratejisi
+  evaluationStrategy   EvaluationStrategy @default(BOOLEAN)
+  evaluationDetailsJson Json? // Strateji detayları (örn: {"percentage": 50} veya {"users": ["id1", "id2"]})
+
+  // Assignment'da istenen kompozit index
+  @@index([tenantId, env])
+  // Benzersizlik kısıtı (Bir tenant, bir özellik ve bir environment için sadece 1 flag olabilir)
+  @@unique([tenantId, featureId, env])
+}
+
+// 4. Audit Logs (Denetim Kayıtları)
+model AuditLog {
+  id          String   @id @default(cuid())
+  timestamp   DateTime @default(now())
+  actor       String   // Değişikliği yapan (örn: user_id veya "system")
+  action      ActionType // CREATE, UPDATE, DELETE
+  targetEntity String  // Örn: "FeatureFlag"
+  targetId    String   // Değişen kaydın ID'si
+  diffBefore  Json?    // Önceki durum (JSON)
+  diffAfter   Json?    // Sonraki durum (JSON)
+
+  @@index([targetEntity, targetId])
+}
+
+// Strateji tipleri için Enum
+enum EvaluationStrategy {
+  BOOLEAN     // Basit true/false
+  PERCENTAGE  // Yüzdesel dağıtım
+  USER        // Hedeflenen kullanıcı listesi
+}
+
+// Audit Log Action tipleri için Enum
+enum ActionType {
+  CREATE
+  UPDATE
+  DELETE
+}

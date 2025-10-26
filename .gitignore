@@ -1,0 +1,89 @@
+# ===================================================================
+# Node.js & Bağımlılıklar
+# ===================================================================
+# İndirilen tüm paketler
+node_modules/
+
+# Paket yöneticisi logları
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ===================================================================
+# Hassas Bilgiler ve Çevre Değişkenleri
+# ===================================================================
+# Asla commit'lenmemesi gereken çevre değişkenleri dosyaları.
+# Bunun yerine .env.example gibi bir şablon dosya commit'leyin.
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+
+# ===================================================================
+# Build Çıktıları (TypeScript / React)
+# ===================================================================
+# Derlenmiş/Transpile edilmiş kod
+dist/
+build/
+out/
+.next/
+
+# TypeScript derleme önbelleği
+*.tsbuildinfo
+
+# ===================================================================
+# Araç Önbellekleri (ESLint / Prisma)
+# ===================================================================
+# ESLint önbellek dosyası
+.eslintcache
+
+# Prisma (Eğer lokalde SQLite kullanıyorsanız)
+*.db
+*.sqlite
+*.sqlite3
+dev.db
+
+# Prisma'nın oluşturduğu geçici dosyalar
+# (Not: schema.prisma dosyası commit'lenmelidir)
+
+# ===================================================================
+# API Dokümantasyonu (Swagger)
+# ===================================================================
+# Koddan otomatik olarak oluşturulan JSON/YAML dosyaları
+swagger.json
+swagger.yaml
+openapi.json
+openapi.yaml
+
+# ===================================================================
+# Docker & PostgreSQL
+# ===================================================================
+# Docker ile lokalde çalışırken oluşturulan veritabanı dosyaları.
+# Bu veriler genellikle bir .dockerignore dosyasında da belirtilir,
+# ancak güvende olmak için buraya da eklenebilir.
+postgres-data/
+docker-data/
+
+# ===================================================================
+# İşletim Sistemi ve IDE Özel Dosyaları
+# ===================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDE - VS Code
+.vscode/
+
+# IDE - JetBrains (WebStorm, IntelliJ, vb.)
+.idea/

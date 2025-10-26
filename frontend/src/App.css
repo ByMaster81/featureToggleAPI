@@ -1,0 +1,304 @@
+.container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+}
+
+.feature-list {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.feature-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fafafa;
+}
+
+.feature-name {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.status {
+  padding: 5px 12px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #fff;
+}
+
+.status.enabled {
+  background-color: #28a745; /* Yeşil */
+}
+
+.status.disabled {
+  background-color: #dc3545; /* Kırmızı */
+}
+
+.feature-item {
+  /* display: flex; zaten vardı */
+  gap: 20px; /* Elemanlar arasına boşluk koyalım */
+}
+
+.feature-info {
+  flex-grow: 1; /* Bilgi alanı mümkün olduğunca genişlesin */
+}
+
+.feature-description {
+  font-size: 0.9rem;
+  color: #777;
+  margin: 5px 0 0 0;
+}
+
+.feature-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-shrink: 0; /* Kontrollerin küçülmesini engelle */
+}
+
+.toggle-button {
+  padding: 8px 16px;
+  border: 1px solid #007bff;
+  background-color: #007bff;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.toggle-button:hover {
+  background-color: #0056b3;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  margin: 0;
+  text-align: left;
+}
+
+.login-button, .logout-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.login-button {
+  background-color: #28a745; /* Yeşil */
+}
+
+.login-button:hover {
+  background-color: #218838;
+}
+
+.logout-button {
+  background-color: #dc3545; /* Kırmızı */
+}
+
+.logout-button:hover {
+  background-color: #c82333;
+}
+
+.toggle-button:disabled {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.controls-panel {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.control-group label {
+  font-weight: bold;
+  color: #555;
+}
+
+#tenant-select {
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  min-width: 150px;
+  font-size: 1rem;
+}
+
+.env-buttons {
+  display: flex;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.env-button {
+  padding: 8px 16px;
+  border: none;
+  background-color: #fff;
+  cursor: pointer;
+  border-left: 1px solid #ccc;
+  transition: background-color 0.2s;
+}
+
+.env-button:first-child {
+  border-left: none;
+}
+
+.env-button:hover {
+  background-color: #e9ecef;
+}
+
+.env-button.active {
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.add-button, .edit-button {
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  border: 1px solid #17a2b8;
+  background-color: #17a2b8;
+  color: white;
+}
+.add-button:disabled {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* Modal Styles */
+.modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  margin-right: -50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 20px;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #555;
+}
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Önemli */
+}
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 30px;
+}
+.button-primary {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+}
+.button-secondary {
+  padding: 10px 20px;
+  border: 1px solid #6c757d;
+  border-radius: 5px;
+  background-color: #fff;
+  color: #6c757d;
+  cursor: pointer;
+}
+
+.delete-button {
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  border: 1px solid #dc3545;
+  background-color: transparent;
+  color: #dc3545;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.delete-button:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+.delete-button:disabled {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: white;
+  cursor: not-allowed;
+}
