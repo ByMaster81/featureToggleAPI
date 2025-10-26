@@ -280,10 +280,10 @@ function App() {
   };
   
   const handleLogout = () => {
-    // 1. localStorage'ı temizle
+    
     localStorage.removeItem('token');
 
-    // 2. State'i ve axios header'larını sıfırla
+    
     setJwt(null);
     delete apiClient.defaults.headers.common['Authorization'];
     setTenants([]); 
@@ -291,14 +291,14 @@ function App() {
     setSelectedTenant('');
   };
 
-  // Uygulama yüklendiğinde localStorage'ı kontrol et
+  
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     if (storedToken) {
       setJwt(storedToken);
       apiClient.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
     }
-  }, []); // [] -> Bu effect sadece 1 kez component mount olduğunda çalışır
+  }, []);
 
   useEffect(() => { if (jwt) { fetchTenants(); fetchAllFeatureDefinitions(); } }, [jwt]);
   useEffect(() => { if (jwt && selectedTenant && selectedEnv) { fetchFeatures(selectedTenant, selectedEnv); } }, [jwt, selectedTenant, selectedEnv]);

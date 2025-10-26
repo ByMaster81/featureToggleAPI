@@ -21,11 +21,11 @@ export const loginUser = async (username: string, password: string) => {
     username: username,
   };
 
-  // Token'ı backend'in secret'ı ile imzala
+ 
   const token = jwt.sign(
     userPayload,
     JWT_SECRET,
-    { expiresIn: '1h' } // Token 1 saat geçerli olsun
+    { expiresIn: '1h' }
   );
 
   return { token, user: userPayload };
