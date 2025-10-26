@@ -41,6 +41,10 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [jwt, setJwt] = useState<string | null>(null);
 
+  // --- Login Formu State'leri ---
+  const [username, setUsername] = useState<string>('admin'); // Varsayılan
+  const [password, setPassword] = useState<string>('password'); // Varsayılan
+
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [features, setFeatures] = useState<Feature[]>([]);
   const [selectedTenant, setSelectedTenant] = useState<string>('');
@@ -49,6 +53,14 @@ function App() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFlag, setEditingFlag] = useState<EditableFlagData | null>(null);
+
+  // --- Promosyon Modalı State'leri ---
+  const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
+  const [promotionSourceEnv, setPromotionSourceEnv] = useState<string>('staging');
+  const [promotionTargetEnv, setPromotionTargetEnv] = useState<string>('prod');
+  const [promotionDryRun, setPromotionDryRun] = useState<boolean>(true);
+  const [promotionReport, setPromotionReport] = useState<any | null>(null);
+  const [promotionLoading, setPromotionLoading] = useState<boolean>(false);
 
   // --- API FONKSİYONLARI ---
 
@@ -67,12 +79,8 @@ function App() {
       };
 
       await apiClient.delete('/features', { data: payload });
-
       alert(`'${flagToDelete.feature.name}' başarıyla silindi.`);
-      
-      // 3. Liste'yi yenile
       fetchFeatures(selectedTenant, selectedEnv);
-
     } catch (err: any) {
       alert(`Hata: ${err.response?.data?.message || "Silme işlemi başarısız oldu."}`);
     }
@@ -166,6 +174,52 @@ function App() {
     } catch (err) { alert("Flag kaydedilirken hata oluştu."); }
   };
 
+  // --- Promosyon Fonksiyonları ---
+  const handlePromote = async (e: FormEvent) => {
+    e.preventDefault();
+    
+    const currentTenant = tenants.find(t => t.name === selectedTenant);
+    if (!currentTenant) {
+      alert("Geçerli bir tenant seçili değil.");
+      return;
+    }
+    if (promotionSourceEnv === promotionTargetEnv) {
+      alert("Kaynak ve hedef ortamlar aynı olamaz.");
+      return;
+    }
+
+    setPromotionLoading(true);
+    setPromotionReport(null); 
+
+    try {
+      const payload = {
+        tenantId: currentTenant.id,
+        sourceEnv: promotionSourceEnv,
+        targetEnv: promotionTargetEnv,
+        dryRun: promotionDryRun,
+      };
+
+      const response = await apiClient.post('/features/promote', payload);
+      setPromotionReport(response.data); 
+
+      if (!promotionDryRun && promotionTargetEnv === selectedEnv) {
+        fetchFeatures(selectedTenant, selectedEnv);
+      }
+
+    } catch (err: any) {
+      const message = err.response?.data?.message || "Promosyon işlemi başarısız oldu.";
+      setPromotionReport({ message, error: true });
+    } finally {
+      setPromotionLoading(false);
+    }
+  };
+
+  const closePromotionModal = () => {
+    setIsPromotionModalOpen(false);
+    setPromotionReport(null);
+    setPromotionLoading(false);
+  };
+  
   // --- MODAL & FORM YÖNETİMİ ---
   const openModalForCreate = () => {
     setEditingFlag({
@@ -201,17 +255,50 @@ function App() {
   };
 
   // --- LOGIN & EFFECT'LER ---
-  const handleLogin = () => {
-    const testToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InRlc3QtdXNlci0xMjMiLCJ0ZW5hbnRJZCI6InRlc3QtdGVuYW50LTQ1NiJ9.Ux0BP7-sjPpR7bbaiET0-0Hyl-BVsZcnoGM3a10WZao';
-    setJwt(testToken);
-    apiClient.defaults.headers.common['Authorization'] = `Bearer ${testToken}`;
+  const handleLogin = async (e: FormEvent) => {
+    e.preventDefault(); // Formun sayfayı yenilemesini engelle
+    try {
+      // 1. Backend'deki yeni /api/auth/login endpoint'ine istek at
+      const response = await apiClient.post('/auth/login', { username, password });
+      
+      const token = response.data.token;
+
+      // 2. Token'ı al ve localStorage'a kaydet
+      localStorage.setItem('token', token);
+
+      // 3. State'i ve axios header'larını güncelle
+      setJwt(token);
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      
+    } catch (err: any) {
+      const message = err.response?.data?.message || "Giriş başarısız.";
+      alert(`Giriş Hata: ${message}`);
+      setJwt(null);
+      localStorage.removeItem('token');
+      delete apiClient.defaults.headers.common['Authorization'];
+    }
   };
   
   const handleLogout = () => {
+    // 1. localStorage'ı temizle
+    localStorage.removeItem('token');
+
+    // 2. State'i ve axios header'larını sıfırla
     setJwt(null);
     delete apiClient.defaults.headers.common['Authorization'];
-    setTenants([]); setFeatureFlags([]); setSelectedTenant('');
+    setTenants([]); 
+    setFeatureFlags([]); 
+    setSelectedTenant('');
   };
+
+  // Uygulama yüklendiğinde localStorage'ı kontrol et
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) {
+      setJwt(storedToken);
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+    }
+  }, []); // [] -> Bu effect sadece 1 kez component mount olduğunda çalışır
 
   useEffect(() => { if (jwt) { fetchTenants(); fetchAllFeatureDefinitions(); } }, [jwt]);
   useEffect(() => { if (jwt && selectedTenant && selectedEnv) { fetchFeatures(selectedTenant, selectedEnv); } }, [jwt, selectedTenant, selectedEnv]);
@@ -222,7 +309,29 @@ function App() {
       <div className="header">
         <h1>Feature Toggle Paneli</h1>
         <div className="auth-controls">
-          {!jwt ? <button onClick={handleLogin} className="login-button">Giriş Yap</button> : <button onClick={handleLogout} className="logout-button">Çıkış Yap</button>}
+          {!jwt ? (
+            // Giriş yapılmadıysa login formu göster
+            <form onSubmit={handleLogin} className="login-form">
+              <input 
+                type="text" 
+                placeholder="Kullanıcı Adı" 
+                value={username} 
+                onChange={(e) => setUsername(e.target.value)} 
+                required 
+              />
+              <input 
+                type="password" 
+                placeholder="Şifre" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                required 
+              />
+              <button type="submit" className="login-button">Giriş Yap</button>
+            </form>
+          ) : (
+            // Giriş yapıldıysa logout butonu göster
+            <button onClick={handleLogout} className="logout-button">Çıkış Yap</button>
+          )}
         </div>
       </div>
 
@@ -245,6 +354,13 @@ function App() {
 
       <div className="toolbar">
         <button onClick={openModalForCreate} className="add-button" disabled={!jwt}>+ Yeni Flag Ekle</button>
+        <button 
+          onClick={() => setIsPromotionModalOpen(true)} 
+          className="button-promote" 
+          disabled={!jwt || !selectedTenant}
+        >
+          Ortamları Senkronize Et...
+        </button>
       </div>
 
       {jwt && (
@@ -267,6 +383,7 @@ function App() {
         </div>
       )}
       
+      {/* Flag Düzenleme/Ekleme Modalı */}
       <Modal isOpen={isModalOpen} onRequestClose={closeModal} className="modal" overlayClassName="overlay">
         {editingFlag && (
           <form onSubmit={handleSaveFlag}>
@@ -320,6 +437,85 @@ function App() {
           </form>
         )}
       </Modal>
+
+      {/* Promosyon Modalı */}
+      <Modal 
+        isOpen={isPromotionModalOpen} 
+        onRequestClose={closePromotionModal} 
+        className="modal" 
+        overlayClassName="overlay"
+      >
+        <form onSubmit={handlePromote}>
+          <h2>Ortamlar Arası Senkronizasyon ({selectedTenant})</h2>
+          <p>Seçili tenant için bir ortamdaki tüm flag'leri başka bir ortama kopyalayın.</p>
+          
+          <div className="form-group">
+            <label htmlFor="sourceEnv">Kaynak Ortam (Buradan Kopyala):</label>
+            <select 
+              id="sourceEnv" 
+              value={promotionSourceEnv} 
+              onChange={(e) => setPromotionSourceEnv(e.target.value)}
+              disabled={promotionLoading}
+            >
+              {ENVIRONMENTS.map(e => <option key={e} value={e}>{e}</option>)}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="targetEnv">Hedef Ortam (Buraya Kopyala):</label>
+            <select 
+              id="targetEnv" 
+              value={promotionTargetEnv} 
+              onChange={(e) => setPromotionTargetEnv(e.target.value)}
+              disabled={promotionLoading}
+            >
+              {ENVIRONMENTS.map(e => <option key={e} value={e}>{e}</option>)}
+            </select>
+          </div>
+
+          <div className="form-group-inline">
+            <label htmlFor="dryRun">Test (Dry Run)</label>
+            <input 
+              id="dryRun" 
+              type="checkbox" 
+              checked={promotionDryRun} 
+              onChange={(e) => setPromotionDryRun(e.target.checked)} 
+              disabled={promotionLoading}
+            />
+            <small style={{marginLeft: '8px'}}>(İşlemi gerçekleştirmeden raporla)</small>
+          </div>
+
+          <div className="form-actions">
+            <button type="button" onClick={closePromotionModal} className="button-secondary" disabled={promotionLoading}>
+              İptal
+            </button>
+            <button type="submit" className="button-primary" disabled={promotionLoading}>
+              {promotionLoading ? "Çalışıyor..." : "Senkronizasyonu Başlat"}
+            </button>
+          </div>
+        </form>
+
+        {/* Rapor Alanı */}
+        {promotionReport && (
+          <div className="promotion-report" style={{ color: promotionReport.error ? '#d9534f' : 'inherit', marginTop: '20px' }}>
+            <hr />
+            <strong>Rapor ({promotionDryRun ? 'DRY RUN' : 'GERÇEKLEŞTİ'}):</strong>
+            <p>{promotionReport.message}</p>
+            
+            {promotionReport.actions && Array.isArray(promotionReport.actions) && (
+              <ul style={{maxHeight: '150px', overflowY: 'auto'}}>
+                {promotionReport.actions.length > 0 ? promotionReport.actions.map((action: string, index: number) => (
+                  <li key={index}>{action}</li>
+                )) : <li>Yapılacak bir işlem bulunamadı.</li>}
+              </ul>
+            )}
+            
+            {promotionReport.created !== undefined && <p>Oluşturulan: {promotionReport.created}</p>}
+            {promotionReport.updated !== undefined && <p>Güncellenen: {promotionReport.updated}</p>}
+          </div>
+        )}
+      </Modal>
+
     </div>
   );
 }

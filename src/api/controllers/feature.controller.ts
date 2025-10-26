@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import * as featureService from '../services/feature.service';
 import redisClient from '../../lib/redis';
 import { evaluateFlags } from '../services/evaluation.service';
-import { AuthenticatedRequest } from '../middlewares/auth.middleware';
+
 
 /**
  * Endpoint: GET /api/features/evaluated
@@ -82,7 +82,7 @@ export const getAllFeatureDefinitions = async (req: Request, res: Response) => {
  * Endpoint: POST /api/features
  * Amacı: Yeni bir feature flag oluşturur veya mevcut olanı günceller.
  */
-export const createOrUpdateFeature = async (req: AuthenticatedRequest, res: Response) => {
+export const createOrUpdateFeature = async (req: Request, res: Response) => {
   try {
     const flagData = req.body;
     flagData.actor = req.user?.id || 'system-fallback';
@@ -101,7 +101,7 @@ export const createOrUpdateFeature = async (req: AuthenticatedRequest, res: Resp
  * Endpoint: DELETE /api/features
  * Amacı: Bir feature flag'i siler.
  */
-export const deleteFeature = async (req: AuthenticatedRequest, res: Response) => {
+export const deleteFeature = async (req: Request, res: Response) => {
   try {
     const { tenantId, featureId, env } = req.body;
     if (!tenantId || !featureId || !env) {
@@ -123,7 +123,7 @@ export const deleteFeature = async (req: AuthenticatedRequest, res: Response) =>
  * Endpoint: POST /api/features/promote
  * Amacı: Feature flag'leri bir ortamdan diğerine kopyalar.
  */
-export const promoteFlags = async (req: AuthenticatedRequest, res: Response) => {
+export const promoteFlags = async (req: Request, res: Response) => {
   try {
     const { tenantId, sourceEnv, targetEnv, dryRun } = req.body;
     const actor = req.user?.id || 'system-fallback';
