@@ -37,6 +37,35 @@ Sistem, özellik bayraklarını yönetmek için güvenli bir REST API (Node.js/T
 * **Containerizasyon:** Docker, Docker Compose
 
 ---
+---
+
+## ⚡ Redis Kullanımı: Performans ve Stabilite
+
+Redis, bu projede iki kritik görev için merkezi bir rol oynar:
+
+### 1. Yüksek Performanslı Önbellekleme (Caching)
+
+Client uygulamalarının sürekli sorguladığı `GET /api/features/evaluated` (değerlendirilmiş bayrakları al) endpoint'i, projenin en "sıcak yolu" (hot path) olarak tasarlanmıştır.
+
+* **Okuma Stratejisi (Cache-Aside):**
+    1.  Bir istek geldiğinde (`tenant=X`, `env=Y`), sistem veritabanından önce Redis'i kontrol eder.
+    2.  `features:raw:X:Y` anahtarında veri varsa, bu veri Redis'ten (milisaniyeler içinde) okunur, değerlendirilir ve döndürülür. Veritabanına gidilmez.
+    3.  Veri yoksa (cache miss), veritabanından çekilir, Redis'e (5 dakikalık bir TTL ile) yazılır ve sonra döndürülür.
+
+* **Yazma Stratejisi (Cache Invalidation):**
+    1.  Yönetim panelinden bir bayrak oluşturulduğunda, güncellendiğinde veya silindiğinde (`POST /features`, `DELETE /features`, `POST /features/promote`)...
+    2.  ...Veritabanı işlemi biter bitmez, `feature.service.ts` ilgili `features:raw:X:Y` anahtarını Redis'ten **aktif olarak siler** (`redisClient.del(...)`).
+
+    Bu "Read-Through / Write-Invalidate" stratejisi, sistemin hem çok hızlı olmasını (çoğu okuma cache'den gelir) hem de verinin asla eskimemesini (her yazma cache'i temizler) garanti altına alır.
+
+### 2. Kiracı Bazlı Rate Limiting
+
+Redis, API'yi kötüye kullanımdan korumak için `express-rate-limit` kütüphanesine bir "dağıtık sayaç" (distributed counter) olarak hizmet verir.
+
+* Her istek, `auth.middleware.ts` tarafından çözülen JWT'den gelen `tenantId` (kiracı kimliği) ile anahtarlanır.
+* Bu sayede, her kiracının 15 dakika içinde yapabileceği istek sayısı (örn: 100 istek) merkezi olarak Redis üzerinde sayılır.
+* Bu, "API Rate Limits per Tenant" gereksinimini karşılar ve sistem birden fazla sunucuda çalışsa bile (ölçeklense bile) tutarlı bir limit sağlar.
+
 
 ## .:Kurulum ve Çalıştırma:.
 
