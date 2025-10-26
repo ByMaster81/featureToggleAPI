@@ -4,7 +4,7 @@ Bu proje, "Zebra Engineering Assignment" için geliştirilmiş, ölçeklenebilir
 
 Sistem, özellik bayraklarını yönetmek için güvenli bir REST API (Node.js/TypeScript) ve bu bayrakları `dev`, `staging`, `prod` gibi farklı ortamlar arasında yönetmek için basit bir Admin UI (React) sağlar. Proje, Redis önbellekleme (caching), kiracı bazlı rate limiting ve detaylı denetim kaydı (audit log) gibi özelliklerle performans ve güvenlik göz önünde bulundurularak oluşturulmuştur.
 
-## ✨ Temel Özellikler
+## .:Temel Özellikler:.
 
 * **Çok-Kiracılı Mimari:** Tüm veriler (bayraklar, ayarlar) kiracılara (tenant) göre bölümlenmiştir.
 * **Ortam Yönetimi:** Her kiracı için `dev`, `staging`, `prod` gibi birden fazla ortamda bayrakları ayrı ayrı yönetebilme.
@@ -24,7 +24,7 @@ Sistem, özellik bayraklarını yönetmek için güvenli bir REST API (Node.js/T
 
 ---
 
-## 🚀 Teknoloji Yığını
+## .:Teknoloji Yığını:.
 
 * **Backend:** Node.js, Express, TypeScript
 * **Veritabanı:** PostgreSQL
@@ -38,7 +38,7 @@ Sistem, özellik bayraklarını yönetmek için güvenli bir REST API (Node.js/T
 
 ---
 
-## 📦 Kurulum ve Çalıştırma
+## .:Kurulum ve Çalıştırma:.
 
 Projeyi çalıştırmanın iki yolu vardır. En hızlı ve tavsiye edilen yöntem Docker kullanmaktır.
 
@@ -115,7 +115,7 @@ Bu yöntem, makinenizde **Node.js** (v18+), **PostgreSQL** ve **Redis**'in kurul
 
 ---
 
-## 📖 API Dokümantasyonu
+## .:API Dokümantasyonu:.
 
 API, Swagger kullanılarak belgelenmiştir. Sunucu çalışırken (ister Docker ister Lokal olsun), interaktif dokümantasyona aşağıdaki adresten erişebilirsiniz:
 
@@ -124,11 +124,11 @@ API, Swagger kullanılarak belgelenmiştir. Sunucu çalışırken (ister Docker 
 
 ---
 
-## 🗃️ Veritabanı Yönetimi (Migration)
+## .:Veritabanı Yönetimi (Migration):.
 
 Bu proje, veritabanı şema değişikliklerini yönetmek için **Prisma Migrate** kullanır.
 
-### Geliştirme (Development)
+### .:Geliştirme (Development):.
 
 `prisma/schema.prisma` dosyasında bir değişiklik yaptığınızda (örn: yeni bir model eklemek), yeni bir migration dosyası oluşturmak ve bunu veritabanınıza uygulamak için şu komutu çalıştırın:
 
@@ -136,7 +136,7 @@ Bu proje, veritabanı şema değişikliklerini yönetmek için **Prisma Migrate*
 npx prisma migrate dev --name sizin-migration-adiniz
 ```
 
-### Üretim (Production)
+### .:Üretim (Production):.
 
 Hazırlanmış migration dosyalarını bir üretim veritabanına uygulamak için `deploy` komutu kullanılır. Bu komut, `prisma/migrations` klasöründeki çalıştırılmamış tüm SQL dosyalarını sırayla uygular:
 
@@ -145,7 +145,7 @@ npx prisma migrate deploy
 ```
 *(Not: Bu komut, Docker kurulumundaki `Dockerfile.api` dosyası tarafından otomatik olarak çalıştırılır.)*
 
-### Başlangıç Verisi (Seeding)
+### .:Başlangıç Verisi (Seeding):.
 
 Veritabanınızı test için örnek verilerle (kiracılar, özellik tanımları vb.) doldurmak için `seed` komutunu kullanabilirsiniz. Seed betiği `prisma/seed.ts` dosyasında tanımlanmıştır.
 
@@ -155,7 +155,7 @@ npx prisma db seed
 
 ---
 
-## 🧪 Testler
+## .:Testler:.
 
 Proje, Jest ve Supertest kullanılarak yazılmış birim (unit) ve entegrasyon (integration) testleri içerir.
 
