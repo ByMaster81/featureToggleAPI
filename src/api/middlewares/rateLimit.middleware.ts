@@ -24,17 +24,11 @@ const apiLimiter = rateLimit({
     });
   },
 
-  // --- HATA ÇÖZÜMÜ BURADA ---
+
   store: new RedisStore({
-    // 1. Fonksiyon imzası (...args: string[]), rate-limit-redis'in 
-    //    'INCR', 'key' gibi birden fazla argüman göndermesini karşılar.
+
     sendCommand: (...args: string[]) => {
       
-      // 2. 'args' değişkeni artık ['INCR', 'key'] gibi bir dizidir.
-
-      // 3. Hata veren 'redisClient.call(...args)' yerine, .apply kullanarak 
-      //    'args' dizisini 'call' metoduna argüman olarak güvenle iletiyoruz.
-      //    Tipleri zorlamak için 'as any' kullanıyoruz.
       return redisClient.call.apply(redisClient, args as any) as any;
     },
   }),

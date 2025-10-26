@@ -30,7 +30,7 @@ app.use('/api', apiRoutes);
 setupSwagger(app);
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server is running at http://localhost:${PORT}`);
+  console.log(`Server is running at http://localhost:${PORT}`);
 });
 console.log("JWT Secret:", process.env.JWT_SECRET);
 

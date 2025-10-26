@@ -34,14 +34,11 @@ export const evaluateFlags = (
         case 'PERCENTAGE':
           // JSON verisinden yüzdelik değeri al. Hata durumunda 0 kabul et.
           const percentage = (flag.evaluationDetailsJson as any)?.percentage ?? 0;
-          // Rastgele bir sayı üret (0-100) ve yüzdelik dilimde olup olmadığını kontrol et.
           isEnabled = Math.random() * 100 < percentage;
           break;
 
         case 'USER':
-          // JSON verisinden kullanıcı listesini al. Hata durumunda boş liste kabul et.
           const userList: string[] = (flag.evaluationDetailsJson as any)?.users ?? [];
-          // Eğer bir userId geldiyse ve bu ID listede varsa, flag'i etkinleştir.
           isEnabled = userId ? userList.includes(userId) : false;
           break;
 
