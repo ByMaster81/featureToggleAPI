@@ -1,0 +1,48 @@
+# --- 1. Aşama: Build (Derleme) ---
+FROM node:20-slim AS builder
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci # Tüm bağımlılıkları kur
+
+COPY prisma ./prisma/
+RUN npx prisma generate
+
+COPY src ./src
+COPY tests ./tests
+COPY tsconfig.json ./tsconfig.json
+COPY jest.config.js ./jest.config.js
+
+RUN npm run build # seed.ts dahil build et
+
+
+
+# --- 2. Aşama: Production (Çalıştırma) ---
+FROM node:20-slim AS production
+
+WORKDIR /app
+
+# OpenSSL uyarısını gidermek için gerekli paketi kur
+RUN apt-get update -y && apt-get install -y openssl
+
+# Önce 'node_modules'ün TAMAMINI kopyala
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/package-lock.json ./package-lock.json
+
+# 'prune' işlemini (devDependencies temizleme) BURADA yap
+RUN npm prune --production
+
+# Derlenmiş kodu ve prisma'yı kopyala
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+
+
+COPY docker-entrypoint.sh .
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+
+
+
+CMD ["node", "dist/src/index.js"]

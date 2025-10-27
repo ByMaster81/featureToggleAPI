@@ -5,7 +5,7 @@ import {
   createOrUpdateFeature,
   deleteFeature,
   promoteFlags,
-  getAllFeatureDefinitions, // Yeni fonksiyonu import et
+  getAllFeatureDefinitions, 
 } from '../controllers/feature.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 

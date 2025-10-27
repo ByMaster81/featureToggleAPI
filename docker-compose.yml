@@ -1,5 +1,38 @@
 version: "3.8"
 services:
+  
+ 
+  # Tarayıcıdan http://localhost:8080 adresinden erişilecek ana servis
+  ui:
+    build:
+      context: . 
+      dockerfile: Dockerfile.ui 
+    restart: always
+    ports:
+      - "8080:80" # Host'taki 8080 portunu Nginx'in 80 portuna bağla
+    depends_on:
+      - api 
+
+
+  api:
+    build:
+      context: . 
+      dockerfile: Dockerfile.api
+    restart: always
+    # Portları dışarı açmıyoruz, çünkü 'ui' (Nginx) proxy görevi görecek
+    depends_on:
+      - postgres 
+      - redis
+    environment:
+      
+      DATABASE_URL: "postgresql://myuser:mypass@postgres:5432/mydb"
+      REDIS_HOST: "redis" 
+      REDIS_PORT: "6379"
+      # BURAYI .env dosyanızdaki GİZLİ anahtarınızla değiştirin!
+      JWT_SECRET: "my-super-secret-key-for-feature-toggle-123!" 
+      PORT: "5001" 
+
+
   postgres:
     image: postgres:16
     restart: always
@@ -11,6 +44,7 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+
 
   redis:
     image: redis:7

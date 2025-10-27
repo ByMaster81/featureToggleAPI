@@ -27,9 +27,8 @@ interface FeatureFlag {
 type EditableFlagData = Partial<Omit<FeatureFlag, 'feature' | 'tenantId'>> & { featureId?: string };
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:5001/api',
+  baseURL: '/api', 
 });
-
 const ENVIRONMENTS = ['dev', 'staging', 'prod'];
 const STRATEGIES = ['BOOLEAN', 'PERCENTAGE', 'USER'];
 
@@ -42,8 +41,8 @@ function App() {
   const [jwt, setJwt] = useState<string | null>(null);
 
   // --- Login Formu State'leri ---
-  const [username, setUsername] = useState<string>('admin'); // Varsayılan
-  const [password, setPassword] = useState<string>('password'); // Varsayılan
+  const [username, setUsername] = useState<string>('admin'); 
+  const [password, setPassword] = useState<string>('password'); 
 
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [features, setFeatures] = useState<Feature[]>([]);
@@ -256,20 +255,13 @@ function App() {
 
   // --- LOGIN & EFFECT'LER ---
   const handleLogin = async (e: FormEvent) => {
-    e.preventDefault(); // Formun sayfayı yenilemesini engelle
+    e.preventDefault(); 
     try {
-      // 1. Backend'deki yeni /api/auth/login endpoint'ine istek at
       const response = await apiClient.post('/auth/login', { username, password });
-      
       const token = response.data.token;
-
-      // 2. Token'ı al ve localStorage'a kaydet
       localStorage.setItem('token', token);
-
-      // 3. State'i ve axios header'larını güncelle
       setJwt(token);
       apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
     } catch (err: any) {
       const message = err.response?.data?.message || "Giriş başarısız.";
       alert(`Giriş Hata: ${message}`);
@@ -280,10 +272,7 @@ function App() {
   };
   
   const handleLogout = () => {
-    
     localStorage.removeItem('token');
-
-    
     setJwt(null);
     delete apiClient.defaults.headers.common['Authorization'];
     setTenants([]); 
@@ -310,7 +299,6 @@ function App() {
         <h1>Feature Toggle Paneli</h1>
         <div className="auth-controls">
           {!jwt ? (
-            // Giriş yapılmadıysa login formu göster
             <form onSubmit={handleLogin} className="login-form">
               <input 
                 type="text" 
@@ -329,7 +317,6 @@ function App() {
               <button type="submit" className="login-button">Giriş Yap</button>
             </form>
           ) : (
-            // Giriş yapıldıysa logout butonu göster
             <button onClick={handleLogout} className="logout-button">Çıkış Yap</button>
           )}
         </div>
@@ -352,16 +339,25 @@ function App() {
         </div>
       )}
 
-      <div className="toolbar">
-        <button onClick={openModalForCreate} className="add-button" disabled={!jwt}>+ Yeni Flag Ekle</button>
-        <button 
-          onClick={() => setIsPromotionModalOpen(true)} 
-          className="button-promote" 
-          disabled={!jwt || !selectedTenant}
-        >
-          Ortamları Senkronize Et...
-        </button>
-      </div>
+      
+      {jwt && (
+        <div className="toolbar">
+          <button 
+            onClick={openModalForCreate} 
+            className="add-button"
+            
+          >
+            + Yeni Flag Ekle
+          </button>
+          <button 
+            onClick={() => setIsPromotionModalOpen(true)} 
+            className="button-promote" 
+            disabled={!selectedTenant} // Sadece selectedTenant kontrolü kaldı
+          >
+            Ortamları Senkronize Et...
+          </button>
+        </div>
+      )}
 
       {jwt && (
         loading ? <h2>Yükleniyor...</h2> : error ? <h2 style={{ color: 'red' }}>Hata: {error}</h2> :
@@ -374,16 +370,17 @@ function App() {
               </div>
               <div className="feature-controls">
                 <span className={`status ${flag.enabled ? 'enabled' : 'disabled'}`}>{flag.enabled ? 'AÇIK' : 'KAPALI'}</span>
-                <button onClick={() => handleToggleFeature(flag)} className="toggle-button" disabled={!jwt}>Değiştir</button>
-                <button onClick={() => openModalForEdit(flag)} className="edit-button" disabled={!jwt}>Düzenle</button>
-                <button onClick={() => handleDeleteFlag(flag)} className="delete-button" disabled={!jwt}>Sil</button>
+                {/* 'disabled={!jwt}' kontrolleri buradan da kaldırıldı */}
+                <button onClick={() => handleToggleFeature(flag)} className="toggle-button">Değiştir</button>
+                <button onClick={() => openModalForEdit(flag)} className="edit-button">Düzenle</button>
+                <button onClick={() => handleDeleteFlag(flag)} className="delete-button">Sil</button>
               </div>
             </div>
           )) : <p>Bu tenant/ortam için özellik bulunamadı.</p>}
         </div>
       )}
       
-      {/* Flag Düzenleme/Ekleme Modalı */}
+      
       <Modal isOpen={isModalOpen} onRequestClose={closeModal} className="modal" overlayClassName="overlay">
         {editingFlag && (
           <form onSubmit={handleSaveFlag}>
@@ -438,7 +435,7 @@ function App() {
         )}
       </Modal>
 
-      {/* Promosyon Modalı */}
+      
       <Modal 
         isOpen={isPromotionModalOpen} 
         onRequestClose={closePromotionModal} 

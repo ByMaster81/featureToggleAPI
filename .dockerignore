@@ -1,0 +1,26 @@
+# '**/node_modules' kuralı, hem './node_modules' hem de 
+# './frontend/node_modules' klasörlerini yoksayar.
+**/node_modules
+
+# Aynı şekilde, tüm build çıktılarını yoksay
+**/dist
+**/build
+**/out
+**/.next
+
+# Git ve yerel ortam dosyaları
+.git
+.gitignore
+.dockerignore
+*.env
+.env.*
+!.env.example
+
+# Veritabanı verisi (docker-compose.yml'deki adıyla eşleşmeli)
+pgdata
+
+# Loglar ve önbellekler
+npm-debug.log*
+yarn-error.log*
+.eslintcache
+*.tsbuildinfo

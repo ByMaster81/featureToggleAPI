@@ -173,6 +173,56 @@ Hazırlanmış migration dosyalarını bir üretim veritabanına uygulamak için
 npx prisma migrate deploy
 ```
 *(Not: Bu komut, Docker kurulumundaki `Dockerfile.api` dosyası tarafından otomatik olarak çalıştırılır.)*
+### 3. Üretim (Production) Ortamı Stratejisi ve Güvenlik
+
+Üretim ortamında (`production`) `migrate deploy` komutunu çalıştırmak, veritabanını güncel tutar. Ancak, çalışan bir serviste kesintiye (downtime) yol açmamak için şema değişikliklerini dikkatli bir stratejiyle ele almak gerekir.
+
+#### Kesintisiz (Non-Breaking) Değişiklikler
+
+Aşağıdaki işlemler "kesintisiz" kabul edilir ve `npx prisma migrate deploy` komutuyla güvenle (sıfır kesintiyle) uygulanabilir:
+* Yeni bir tablo (Model) eklemek.
+* Yeni, `nullable` (boş bırakılabilir) bir sütun (alan) eklemek.
+* Yeni bir index eklemek.
+
+#### Kesintiye Neden Olan (Breaking) Değişiklikler
+
+Bir sütunu yeniden adlandırmak (`RENAME COLUMN`) veya silmek (`DROP COLUMN`) "breaking change" olarak kabul edilir. Eğer API kodunuz bu değişikliği beklemiyorsa, `migrate deploy` çalışır çalışmaz API'niz çökmeye başlar.
+
+Bu tür değişiklikler her zaman **iki aşamalı (ve iki ayrı deploy) bir süreçle** ele alınır:
+
+**Örnek: `title` sütununu `name` olarak yeniden adlandırmak**
+
+**1. Aşama (Ekleme ve Senkronizasyon):**
+1.  **Kod:** `schema.prisma` dosyasını açın. `title` sütununu silmeyin. Bunun yerine `name` adında *yeni, nullable* bir sütun ekleyin.
+2.  **Kod:** API kodunuzu (servislerinizi), **hem `title` hem de `name` alanlarına** veri yazacak şekilde güncelleyin. Okuma işlemleri hala `title`'dan yapılabilir.
+3.  **Deploy 1:** Yeni `prisma/migrations` dosyasını ve API kodunuzu deploy edin (`npx prisma migrate deploy` ve `docker-compose up -d --build`).
+4.  *(Opsiyonel/Gerekirse)* `title`'daki eski verileri `name`'e kopyalamak için bir "backfill" (veri doldurma) script'i çalıştırın.
+
+*Bu aşamanın sonunda, API'niz yeni `name` sütununu doldurmaya başlamıştır ve eski sütun (`title`) hala yerindedir.*
+
+**2. Aşama (Temizlik):**
+1.  **Kod:** API kodunuzu, okuma ve yazma işlemlerini *sadece* yeni `name` sütununu kullanacak şekilde güncelleyin. `title`'a olan tüm bağımlılığı kaldırın.
+2.  **Deploy 2:** Sadece API kodunuzu deploy edin (migration çalıştırmayın).
+3.  **Kod:** Artık hiçbir kod `title` sütununu kullanmadığına göre, `schema.prisma` dosyasını açın ve eski `title` sütununu silin.
+4.  **Kod:** `npx prisma migrate dev --name drop-old-title-column` komutuyla yeni bir migration oluşturun.
+5.  **Deploy 3:** Bu son migration'ı deploy edin (`npx prisma migrate deploy`).
+
+Bu iki (veya üç) aşamalı deploy stratejisi, veritabanı şeması değişirken uygulamanızın **sıfır kesinti (zero downtime)** ile çalışmaya devam etmesini sağlar.
+
+
+### 4. Veritabanını Görsel Olarak İnceleme (Prisma Studio)
+
+Prisma, veritabanınızdaki verileri görmenizi ve düzenlemenizi sağlayan `Prisma Studio` adında yerleşik bir görsel arayüzle birlikte gelir.
+
+Geliştirme ortamında (lokal kurulumda) veritabanınıza bu arayüz üzerinden erişmek için proje ana dizininde (backend) aşağıdaki komutu çalıştırmanız yeterlidir:
+
+```bash
+npx prisma studio
+```
+
+Bu komut, tarayıcınızda otomatik olarak (`http://localhost:5555`) bir sekme açar ve tüm modellerinizi (Tenant, Feature, FeatureFlag, AuditLog vb.) tablo halinde görmenizi, satır eklemenizi, silmenizi veya düzenlemenizi sağlar.
+
+
 
 ### .:Başlangıç Verisi (Seeding):.
 

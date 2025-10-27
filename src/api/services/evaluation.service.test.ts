@@ -1,7 +1,7 @@
 import { evaluateFlags } from './evaluation.service';
 import { EvaluationStrategy } from '@prisma/client';
 
-// 'describe' bloğu, birbiriyle ilgili bir grup testi bir araya getirir.
+
 describe('Evaluation Service', () => {
 
   // 'it' veya 'test' bloğu, tek bir test senaryosunu tanımlar.
@@ -14,7 +14,7 @@ describe('Evaluation Service', () => {
 
     const result = evaluateFlags(flags);
     
-    // 'expect', sonucun ne olması gerektiğini kontrol eder.
+    
     expect(result[0].enabled).toBe(true);
   });
 
@@ -34,12 +34,12 @@ describe('Evaluation Service', () => {
     const flags = [{
       enabled: true,
       evaluationStrategy: EvaluationStrategy.PERCENTAGE,
-      evaluationDetailsJson: { percentage: 100 }, // %100 açık
+      evaluationDetailsJson: { percentage: 100 }, 
       feature: { name: 'percent-100' }
     }, {
       enabled: true,
       evaluationStrategy: EvaluationStrategy.PERCENTAGE,
-      evaluationDetailsJson: { percentage: 0 }, // %0 açık (yani hep kapalı)
+      evaluationDetailsJson: { percentage: 0 }, 
       feature: { name: 'percent-0' }
     }] as any;
 

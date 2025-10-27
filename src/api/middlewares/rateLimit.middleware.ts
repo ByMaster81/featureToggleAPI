@@ -1,21 +1,24 @@
 // src/api/middlewares/rateLimit.middleware.ts
 
-import { rateLimit } from 'express-rate-limit';
+import { rateLimit, ipKeyGenerator } from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
 import redisClient from '../../lib/redis';
 import { Request, Response } from 'express';
 
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: 15 * 60 * 1000, // 15 dakika
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
 
   keyGenerator: (req: Request, res: Response): string => {
-    // 1. Tenant ID'yi dene
-    // 2. O yoksa IP adresini dene
-    // 3. O da yoksa (örn: test ortamı) statik bir anahtar kullan
-    return req.user?.tenantId ?? req.ip ?? 'unknown-key';
+
+    if (req.user?.tenantId) {
+      return req.user.tenantId;
+    }
+    
+
+    return ipKeyGenerator(req as any) ?? 'unknown-key';
   },
 
   handler: (req, res, next, options) => {
@@ -24,11 +27,9 @@ const apiLimiter = rateLimit({
     });
   },
 
-
   store: new RedisStore({
 
     sendCommand: (...args: string[]) => {
-      
       return redisClient.call.apply(redisClient, args as any) as any;
     },
   }),
